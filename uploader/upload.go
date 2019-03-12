@@ -1,7 +1,6 @@
 package uploader
 
 import (
-	"compress/gzip"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,17 +12,15 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var redisClient *redis.Client
+var RedisClient *redis.Client
 
 func init() {
-	redisClient = redis.NewClient(&redis.Options{
+	RedisClient = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
 
-	pong, err := redisClient.Ping().Result()
-	fmt.Println(pong, err)
 }
 
 func Upload(w http.ResponseWriter, r *http.Request) {
@@ -37,10 +34,8 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	reader, writer := io.Pipe()
 	// compressing the file before upload
 	go func() {
-		gw := gzip.NewWriter(writer)
-		io.Copy(gw, file)
+		io.Copy(writer, file)
 		file.Close()
-		gw.Close()
 		writer.Close()
 	}()
 	sess, e := session.NewSession(&aws.Config{
@@ -63,7 +58,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Successfully uploaded: ", result.Location)
 	u := uuid.NewV4()
-	redisClient.Set(u.String(), result.Location, 0)
+	RedisClient.Set(u.String(), header.Filename, 0)
 	fmt.Fprintf(w, "ID: %s URL: %s \n", u.String(), result.Location)
 	return
 }
