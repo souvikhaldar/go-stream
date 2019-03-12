@@ -45,9 +45,29 @@
   version = "v1.18.0"
 
 [[projects]]
+  name = "github.com/go-redis/redis"
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+    "internal/proto",
+    "internal/util"
+  ]
+  revision = "d22fde8721cc915a55aeb6b00944a76a92bfeb6e"
+  version = "v6.15.2"
+
+[[projects]]
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   revision = "c2b33e84"
+
+[[projects]]
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/souvikhaldar/mux"
@@ -58,6 +78,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "588b9a1878e93074b05ceee88590116b2a2e5c5cd913cfa767b3f01aa626976f"
+  inputs-digest = "78af0d717d33f75d854f6761ba2e7ad74101d906394a5274148944ca5a2832d9"
   solver-name = "gps-cdcl"
   solver-version = 1

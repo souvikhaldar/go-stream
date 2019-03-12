@@ -9,7 +9,22 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/go-redis/redis"
+	uuid "github.com/satori/go.uuid"
 )
+
+var redisClient *redis.Client
+
+func init() {
+	redisClient = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := redisClient.Ping().Result()
+	fmt.Println(pong, err)
+}
 
 func Upload(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("---Uploading to s3---")
@@ -18,7 +33,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error in reading from request file: ", err)
 		return
 	}
-	fmt.Println("File details: ", header.Filename)
+	fmt.Println("File details:", header.Filename)
 	reader, writer := io.Pipe()
 	// compressing the file before upload
 	go func() {
@@ -41,13 +56,14 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		Body:   reader,
 		Bucket: aws.String("go-streamer"),
 		Key:    aws.String(header.Filename),
-		//ACL:    aws.String("public-read"),
 	})
 	if er != nil {
 		fmt.Println("Failed to upload to s3: ", er)
 		return
 	}
 	fmt.Println("Successfully uploaded: ", result.Location)
-	fmt.Fprintf(w, "URL: %s", result.Location)
+	u := uuid.NewV4()
+	redisClient.Set(u.String(), result.Location, 0)
+	fmt.Fprintf(w, "ID: %s URL: %s \n", u.String(), result.Location)
 	return
 }
