@@ -2,7 +2,6 @@ package downloader
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -24,7 +23,6 @@ func Download(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error in fetching from redis: ", e)
 		return
 	}
-	fmt.Println("key: ", key)
 	sess, e := session.NewSession(&aws.Config{
 		Region: aws.String("ap-south-1")},
 	)
@@ -34,7 +32,7 @@ func Download(w http.ResponseWriter, r *http.Request) {
 	}
 	downloader := s3manager.NewDownloader(sess)
 
-	file, err := os.Create(key + "downloaded-from-s3")
+	file, err := os.Create("downloaded-from-s3" + key)
 	numBytes, err := downloader.Download(file,
 		&s3.GetObjectInput{
 			Bucket: aws.String("go-streamer"),
@@ -42,7 +40,8 @@ func Download(w http.ResponseWriter, r *http.Request) {
 		})
 
 	if err != nil {
-		log.Fatalf("Unable to download item %q, %v", key, err)
+		fmt.Println("Unable to download item %q, %v", key, err)
+		return
 	}
 	file.Close()
 	fmt.Println("Downloaded", key+"downloaded-from-s3", numBytes, "bytes")
